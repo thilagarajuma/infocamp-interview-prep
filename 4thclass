@@ -1,1 +1,144 @@
+R1
+===
+config t
+!
+Hostname InfoCamp_R1
+!
+defa interface fa 0/1
+!
+interface fa 0/1
+shut
+!
+interface fa 0/0
+desc Conncted_2_R2
+ip add 192.168.12.1 255.255.255.248
+no shut
+!
+exit
+exit
+!
+wr
 
+
+R2
+===
+config t
+Hostname InfoCamp_R2
+!
+defa interface fa 0/1
+!
+interface fa 0/1
+shut
+!
+interface fa 0/0
+desc Conncted_2_R1
+ip add 192.168.12.2 255.255.255.248
+no shut
+!
+end
+wr
+
+
+
+Monitoring tool ---solarwind----all node---infocamp2-router interface down.
+Noc-notify and create ticket to Network Engineer--->SRQ-1
+
+Ticket tool
+SRQ-1:
+*Mar  1 00:35:48.707: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to down
+Device : InfoCamp_R2
+!
+Comments : at *Mar  1 00:35:47.707: Network Engineer XYZ mannually admin down using CHG-1.
+!
+
+CHG-1
+XYZ---Shuting down the unused interface 0/1 from InfoCamp_R2.
+scheduled on Mar 1 at 00:00 AM to 03:00 AM
+
+
+
+
+
+
+InfoCamp_R1#sh ip int bri | ex down
+Interface                  IP-Address      OK? Method Status                Protocol
+FastEthernet0/0            192.168.12.1    YES manual up                    up      
+Loopback2                  1.1.1.1         YES manual up                    up      
+InfoCamp_R1#
+
+without source : 
+================
+InfoCamp_R1#ping 2.2.2.2    
+InfoCamp_R1#
+sending
+~~~~~~~~
+*Mar  1 01:32:26.535: IP: tableid=0, s=192.168.12.1 (local), d=2.2.2.2 (FastEthernet0/0), routed via FIB
+*Mar  1 01:32:26.539: IP: s=192.168.12.1 (local), d=2.2.2.2 (FastEthernet0/0), len 100, sending
+recived
+~~~~~~~
+*Mar  1 01:32:26.615: IP: tableid=0, s=2.2.2.2 (FastEthernet0/0), d=192.168.12.1 (FastEthernet0/0), routed via RIB
+*Mar  1 01:32:26.619: IP: s=2.2.2.2 (FastEthernet0/0), d=192.168.12.1 (FastEthernet0/0), len 100, rcvd 1
+InfoCamp_R1#
+
+InfoCamp_R2#
+recived
+~~~~~~~
+*Mar  1 01:31:12.551: IP: tableid=0, s=192.168.12.1 (FastEthernet0/0), d=2.2.2.2 (Loopback0), routed via RIB
+*Mar  1 01:31:12.551: IP: s=192.168.12.1 (FastEthernet0/0), d=2.2.2.2, len 100, rcvd 1
+sending
+~~~~~~~~
+*Mar  1 01:31:12.555: IP: tableid=0, s=2.2.2.2 (local), d=192.168.12.1 (FastEthernet0/0), routed via FIB
+*Mar  1 01:31:12.555: IP: s=2.2.2.2 (local), d=192.168.12.1 (FastEthernet0/0), len 100, sending
+InfoCamp_R2#
+InfoCamp_R2#
+
+with source : 
+=============
+InfoCamp_R1#ping 2.2.2.2 source loopback 2
+InfoCamp_R1#
+sending
+~~~~~~~~
+*Mar  1 01:37:53.115: IP: tableid=0, s=1.1.1.1 (local), d=2.2.2.2 (FastEthernet0/0), routed via FIB
+*Mar  1 01:37:53.115: IP: s=1.1.1.1 (local), d=2.2.2.2 (FastEthernet0/0), len 100, sending.
+recived
+~~~~~~~
+no response from R2
+InfoCamp_R1#
+
+InfoCamp_R2#
+recived
+~~~~~~~
+*Mar  1 01:39:15.947: IP: tableid=0, s=1.1.1.1 (FastEthernet0/0), d=2.2.2.2 (Loopback0), routed via RIB
+*Mar  1 01:39:15.947: IP: s=1.1.1.1 (FastEthernet0/0), d=2.2.2.2, len 100, rcvd 1
+sending has issue due to routing.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*Mar  1 01:39:15.951: IP: s=2.2.2.2 (local), d=1.1.1.1, len 100, unroutable
+InfoCamp_R2#
+
+
+After fixed the issue:
+======================
+
+InfoCamp_R1#ping 2.2.2.2 source loopback 2
+InfoCamp_R1#
+sending
+~~~~~~~~
+*Mar  1 01:44:28.283: IP: tableid=0, s=1.1.1.1 (local), d=2.2.2.2 (FastEthernet0/0), routed via FIB
+*Mar  1 01:44:28.283: IP: s=1.1.1.1 (local), d=2.2.2.2 (FastEthernet0/0), len 100, sending
+recived
+~~~~~~~
+*Mar  1 01:44:28.375: IP: tableid=0, s=2.2.2.2 (FastEthernet0/0), d=1.1.1.1 (Loopback2), routed via RIB
+*Mar  1 01:44:28.375: IP: s=2.2.2.2 (FastEthernet0/0), d=1.1.1.1, len 100, rcvd 4
+InfoCamp_R1#
+
+
+InfoCamp_R2#
+recived
+~~~~~~~
+*Mar  1 01:44:00.411: IP: tableid=0, s=1.1.1.1 (FastEthernet0/0), d=2.2.2.2 (Loopback0), routed via RIB
+*Mar  1 01:44:00.411: IP: s=1.1.1.1 (FastEthernet0/0), d=2.2.2.2, len 100, rcvd 4
+sending
+~~~~~~~~
+*Mar  1 01:44:00.415: IP: tableid=0, s=2.2.2.2 (local), d=1.1.1.1 (FastEthernet0/0), routed via FIB
+*Mar  1 01:44:00.415: IP: s=2.2.2.2 (local), d=1.1.1.1 (FastEthernet0/0), len 100, sending
+InfoCamp_R2#
